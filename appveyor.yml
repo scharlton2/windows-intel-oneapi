@@ -1,0 +1,22 @@
+image: Visual Studio 2019
+
+# see https://software.intel.com/content/www/us/en/develop/documentation/installation-guide-for-intel-oneapi-toolkits-windows/top/installation/install-with-command-line.html
+# see https://github.com/oneapi-src/oneapi-ci
+environment:
+  APPVEYOR_BAKE_IMAGE: windows-intel-oneapi
+  WINDOWS_BASEKIT_URL: https://registrationcenter-download.intel.com/akdlm/irc_nas/17768/w_BaseKit_p_2021.2.0.2871_offline.exe
+  WINDOWS_HPCKIT_URL: https://registrationcenter-download.intel.com/akdlm/irc_nas/17762/w_HPCKit_p_2021.2.0.2901_offline.exe
+  WINDOWS_CPP_COMPONENTS: intel.oneapi.win.cpp-compiler
+  WINDOWS_FORTRAN_COMPONENTS: intel.oneapi.win.ifort-compiler
+
+install:
+  cmd: curl -L --output basekit.exe --url %WINDOWS_BASEKIT_URL%
+  cmd: start /b /wait basekit.exe -s -x -f basekit-extracted --log extract-basekit.log
+  cmd: basekit_extracted\bootstrapper.exe -s --action install --components=%WINDOWS_CPP_COMPONENTS% --eula=accept --continue-with-optional-error=yes -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=1 --log-dir=.
+
+artifacts:
+  - name: InstallLogs
+    path: |
+      extract-basekit.log
+      bootstrapper*
+      installer*
