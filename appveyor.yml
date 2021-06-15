@@ -4,7 +4,6 @@ image: Visual Studio 2019
 # see https://github.com/oneapi-src/oneapi-ci
 # see https://oneapi-src.github.io/oneapi-ci/#intelr-oneapi-base-toolkit
 environment:
-  APPVEYOR_BAKE_IMAGE: windows-intel-oneapi
   WINDOWS_BASEKIT_URL: https://registrationcenter-download.intel.com/akdlm/irc_nas/17768/w_BaseKit_p_2021.2.0.2871_offline.exe
   WINDOWS_HPCKIT_URL: https://registrationcenter-download.intel.com/akdlm/irc_nas/17762/w_HPCKit_p_2021.2.0.2901_offline.exe
   WINDOWS_MKL_COMPONENTS: intel.oneapi.win.mkl.devel            # Intel® oneAPI Math Kernel Library
@@ -34,6 +33,15 @@ build_script:
   - cmd: icx /help
   - cmd: ifort /help
   - cmd: tree /A .
+
+after_build:
+  - ps: |
+    if ($env:APPVEYOR_REPO_BRANCH -eq 'main') {
+      $env:APPVEYOR_BAKE_IMAGE = 'windows-intel-oneapi'
+    }
+
+on_image_bake:
+  - ps: Write-Output "$env:APPVEYOR_BAKE_IMAGE baked"
 
 artifacts:
   - name: InstallLogs
