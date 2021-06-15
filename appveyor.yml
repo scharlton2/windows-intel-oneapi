@@ -2,17 +2,23 @@ image: Visual Studio 2019
 
 # see https://software.intel.com/content/www/us/en/develop/documentation/installation-guide-for-intel-oneapi-toolkits-windows/top/installation/install-with-command-line.html
 # see https://github.com/oneapi-src/oneapi-ci
+# see https://oneapi-src.github.io/oneapi-ci/#intelr-oneapi-base-toolkit
 environment:
   APPVEYOR_BAKE_IMAGE: windows-intel-oneapi
   WINDOWS_BASEKIT_URL: https://registrationcenter-download.intel.com/akdlm/irc_nas/17768/w_BaseKit_p_2021.2.0.2871_offline.exe
   WINDOWS_HPCKIT_URL: https://registrationcenter-download.intel.com/akdlm/irc_nas/17762/w_HPCKit_p_2021.2.0.2901_offline.exe
-  WINDOWS_CPP_COMPONENTS: intel.oneapi.win.cpp-compiler
-  WINDOWS_FORTRAN_COMPONENTS: intel.oneapi.win.ifort-compiler
+  WINDOWS_MKL_COMPONENTS: intel.oneapi.win.mkl.devel            # Intel® oneAPI Math Kernel Library
+  WINDOWS_MPI_COMPONENTS: intel.oneapi.win.mpi.devel            # Intel® MPI Library
+  WINDOWS_CPP_COMPONENTS: intel.oneapi.win.cpp-compiler         # Intel® oneAPI DPC++/C++ Compiler & Intel® C++ Compiler Classic
+  WINDOWS_FORTRAN_COMPONENTS: intel.oneapi.win.ifort-compiler   # Intel® Fortran Compiler (Beta) & Intel® Fortran Compiler Classic
 
 install:
   - cmd: curl -L --output basekit.exe --url %WINDOWS_BASEKIT_URL%
   - cmd: start /b /wait basekit.exe -s -x -f basekit-extracted --log extract-basekit.log
-  - cmd: basekit-extracted\bootstrapper.exe -s --action install --components=%WINDOWS_CPP_COMPONENTS% --eula=accept --continue-with-optional-error=yes -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=1 --log-dir=.
+  - cmd: basekit-extracted\bootstrapper.exe -s --action install --components=%WINDOWS_MKL_COMPONENTS% --eula=accept --continue-with-optional-error=yes -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=1 --log-dir=.
+  - cmd: curl -L --output hpckit.exe --url %WINDOWS_HPCKIT_URL%
+  - cmd: start /b /wait hpckit.exe -s -x -f hpckit-extracted --log extract-hpckit.log
+  - cmd: hpckit-extracted\bootstrapper.exe -s --action install --components=%WINDOWS_CPP_COMPONENTS%:%WINDOWS_MPI_COMPONENTS%:%WINDOWS_FORTRAN_COMPONENTS% --eula=accept --continue-with-optional-error=yes -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=1 --log-dir=.
 
 before_build:
   - cmd: call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 vs2019
@@ -20,12 +26,19 @@ before_build:
 build_script:
   - cmd: where icl
   - cmd: where icx
+  - cmd: where ifort
+  - cmd: where mpicxx
+  - cmd: where mpif90
+  - cmd: where mpifc
   - cmd: icl /help
   - cmd: icx /help
+  - cmd: ifort /help
+  - cmd: tree /A .
 
 artifacts:
   - name: InstallLogs
     path: |
       extract-basekit.log
+      extract-hpckit.log
       bootstrapper*
       installer*
