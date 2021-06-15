@@ -36,9 +36,9 @@ build_script:
 
 after_build:
   - ps: |
-    if ($env:APPVEYOR_REPO_BRANCH -eq 'main') {
-      $env:APPVEYOR_BAKE_IMAGE = 'windows-intel-oneapi'
-    }
+      if ($env:APPVEYOR_REPO_BRANCH -eq 'main') {
+        $env:APPVEYOR_BAKE_IMAGE = 'windows-intel-oneapi'
+      }
 
 on_image_bake:
   - ps: Write-Output "$env:APPVEYOR_BAKE_IMAGE baked"
